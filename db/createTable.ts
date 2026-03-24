@@ -1,4 +1,4 @@
-import pool from './dbPool';
+import pool from '../src/config/db.config';
 
 async function createTable() {
     try{

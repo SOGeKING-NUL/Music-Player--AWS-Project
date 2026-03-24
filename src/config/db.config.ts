@@ -2,7 +2,7 @@ import {Pool} from "pg";
 import 'dotenv/config';
 import fs from 'fs';
 
-const caBundle = fs.readFileSync(new URL('./global-bundle.pem', import.meta.url));
+const caBundle = fs.readFileSync(new URL('./certs/global-bundle.pem', import.meta.url));
 
 const pool = new Pool({
     host: 'music-player-db.cbs4e4gim1z4.ap-south-1.rds.amazonaws.com',
