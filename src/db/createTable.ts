@@ -22,6 +22,7 @@ async function createTable() {
                 title TEXT NOT NULL,
                 artist_id UUID REFERENCES artists(id) ON DELETE CASCADE,
                 release_year INTEGER,
+                genre TEXT,
                 s3_cover_key TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
             );
@@ -36,7 +37,6 @@ async function createTable() {
                 album_id UUID REFERENCES albums(id) ON DELETE CASCADE,
                 track_number INTEGER NOT NULL,
                 duration_seconds INTEGER,
-                genre TEXT,
                 s3_audio_key TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT NOW(),
                 UNIQUE(album_id, track_number)

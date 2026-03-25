@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { generateAlbumKey, generateSongKey } from "../utils/s3KeyGenerator";
 import { getPresignedUrl } from "../services/s3.service";
+import { saveSong, updateAlbumCover } from "../services/db.service";
 
 
 export async function getSongUrl(req: Request, res: Response){
@@ -57,7 +58,6 @@ export async function getCoverUrl(req: Request, res: Response){
 
         const url= await getPresignedUrl(s3Key, fileType);
 
-        // Include metadata in response
         res.json({
             ...url,
             metadata: {
@@ -68,5 +68,57 @@ export async function getCoverUrl(req: Request, res: Response){
     }catch(err){
         console.error("Error while generating album cover URL:", err);
         res.status(500).json({error: "Failed to generate upload URL"});
+    }
+}
+
+export async function confirmSongUpload(req: Request, res: Response) {
+    try {
+        const { title, artistId, albumId, trackNumber, s3AudioKey, durationSeconds } = req.body;
+
+        if (!title || !artistId || !albumId || !trackNumber || !s3AudioKey) {
+            return res.status(400).json({
+                error: 'Missing required fields: title, artistId, albumId, trackNumber, s3AudioKey'
+            });
+        }
+
+        const song = await saveSong( title, artistId, albumId, trackNumber, s3AudioKey, durationSeconds);
+
+        res.json({
+            success: true,
+            songId: song.id,
+            message: 'Song metadata saved successfully'
+        });
+    } catch (err: any) {
+        console.error("Error confirming song upload:", err);
+        
+        if (err.code === '23505') {
+            return res.status(409).json({
+                error: 'Track number already exists for this album'
+            });
+        }
+        
+        res.status(500).json({ error: 'Failed to save song metadata' });
+    }
+}
+
+export async function confirmCoverUpload(req: Request, res: Response) {
+    try {
+        const { albumId, s3CoverKey } = req.body;
+
+        if (!albumId || !s3CoverKey) {
+            return res.status(400).json({
+                error: 'Missing required fields: albumId, s3CoverKey'
+            });
+        }
+
+        await updateAlbumCover(albumId, s3CoverKey);
+
+        res.json({
+            success: true,
+            message: 'Album cover saved successfully'
+        });
+    } catch (err) {
+        console.error("Error confirming cover upload:", err);
+        res.status(500).json({ error: 'Failed to save album cover' });
     }
 }
