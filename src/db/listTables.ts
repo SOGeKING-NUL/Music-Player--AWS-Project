@@ -1,4 +1,4 @@
-import pool from '../src/config/db.config';
+import pool from '../config/db.config';
 
 async function listTable() {
     console.log('Listing Tables:\n');
