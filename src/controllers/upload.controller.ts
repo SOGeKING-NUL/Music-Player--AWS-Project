@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { generateAlbumKey, generateSongKey } from "../utils/s3KeyGenerator";
+import { generateAlbumKey, generateSongKey, generateArtistImageKey } from "../utils/s3KeyGenerator";
 import { getPresignedUrl } from "../services/s3.service";
 import { saveSong, updateAlbumCover } from "../services/db.service";
 
@@ -120,5 +120,33 @@ export async function confirmCoverUpload(req: Request, res: Response) {
     } catch (err) {
         console.error("Error confirming cover upload:", err);
         res.status(500).json({ error: 'Failed to save album cover' });
+    }
+}
+
+export async function getArtistImageUrl(req: Request, res: Response){
+    try{
+        const {artistId, fileType} = req.body;
+
+        if(!artistId || !fileType){
+            return res.status(400).json({
+                error: 'Missing required fields: artistId, fileType'
+            });
+        }
+
+        const extension= fileType === 'image/jpeg' ? 'jpg' : 'png'; 
+
+        const s3Key= generateArtistImageKey(artistId, extension);
+
+        const url= await getPresignedUrl(s3Key, fileType);
+
+        res.json({
+            ...url,
+            metadata: {
+                artistId
+            }
+        });
+    }catch(err){
+        console.error("Error while generating artist image URL:", err);
+        res.status(500).json({error: "Failed to generate upload URL"});
     }
 }

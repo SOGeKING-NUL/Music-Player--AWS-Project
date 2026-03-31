@@ -1,14 +1,36 @@
 import pool from "../config/db.config";
 
-export async function saveArtist(name: string) {
+export async function saveArtist(name: string, s3CoverKey?: string) {
     const result = await pool.query(
-        `INSERT INTO artists (name) 
-         VALUES ($1) 
-         ON CONFLICT DO NOTHING 
+        `INSERT INTO artists (name, s3_cover_key) 
+         VALUES ($1, $2) 
          RETURNING id`,
-        [name]
+        [name, s3CoverKey]
     );
     return result.rows[0];
+}
+
+export async function getAllArtists() {
+    const result = await pool.query(
+        `SELECT * FROM artists ORDER BY created_at DESC`
+    );
+    return result.rows;
+}
+
+export async function getAlbumsByArtist(artistId: string) {
+    const result = await pool.query(
+        `SELECT * FROM albums WHERE artist_id = $1 ORDER BY release_year DESC`,
+        [artistId]
+    );
+    return result.rows;
+}
+
+export async function getSongsByAlbum(albumId: string) {
+    const result = await pool.query(
+        `SELECT * FROM songs WHERE album_id = $1 ORDER BY track_number ASC`,
+        [albumId]
+    );
+    return result.rows;
 }
 
 export async function saveAlbum(title: string, artistId: string, releaseYear: number, genre?: string, s3CoverKey?: string) {

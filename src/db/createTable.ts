@@ -11,6 +11,7 @@ async function createTable() {
             CREATE TABLE IF NOT EXISTS artists(
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name TEXT NOT NULL,
+                s3_cover_key TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
             );
         `);

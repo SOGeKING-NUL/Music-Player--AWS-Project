@@ -1,3 +1,10 @@
+export function generateArtistImageKey(
+    artistId: string,
+    extension: string
+): string {
+    return `media/artists/${artistId}/cover.${extension}`;
+}
+
 export function generateSongKey(
     artistId: string,
     albumId: string,
