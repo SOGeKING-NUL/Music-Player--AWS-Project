@@ -15,10 +15,10 @@ function MainButtonNodeComponent() {
       </HoverBorderGradient>
 
       {/* Source Handle (connects to the pool) */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!w-3 !h-3 !bg-black !border-2 !border-black"
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        className="!w-4 !h-4 !bg-black !border-[3px] !border-white shadow-sm"
       />
     </div>
   );

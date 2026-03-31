@@ -1,6 +1,5 @@
 import { memo, useRef, useState, useCallback, useMemo, createRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { ArtistDetailsModal } from '../ArtistDetailsModal';
 import { api } from '@/services/api';
 
 // ─── Constants ───
@@ -9,7 +8,7 @@ const PAD = 20;
 const SPOTLIGHT_SCALE = 1.22;
 const INFLUENCE_RADIUS = 100;
 const PUSH_STRENGTH = 18;
-const S3_BASE_URL = "https://music-player-2026.s3.ap-south-1.amazonaws.com";
+const S3_BASE_URL = import.meta.env.VITE_S3_BASE_URL || "https://music-player-2026.s3.ap-south-1.amazonaws.com";
 
 // ─── SELF-SHRINKING LAYOUT: guarantees ZERO overlap ───
 function layoutBubbles(count: number): { positions: { x: number; y: number }[]; bubbleSize: number } {
@@ -90,16 +89,17 @@ interface Artist {
 }
 
 interface ArtistPoolNodeProps {
+  id: string;
   data: {
     refreshKey?: number;
+    onArtistSelect?: (artist: Artist, sourceNodeId: string) => void;
   };
 }
 
-function ArtistPoolNodeComponent({ data }: ArtistPoolNodeProps) {
+function ArtistPoolNodeComponent({ id, data }: ArtistPoolNodeProps) {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
 
   const fetchArtists = useCallback(async () => {
     try {
@@ -182,7 +182,8 @@ function ArtistPoolNodeComponent({ data }: ArtistPoolNodeProps) {
       className="relative bg-white border border-gray-200 rounded-3xl shadow-lg overflow-visible"
       style={{ width: `${POOL_SIZE}px`, height: `${POOL_SIZE}px` }}
     >
-      <Handle type="target" position={Position.Left} className="!w-3 !h-3 !bg-black !border-2 !border-black" />
+      <Handle type="target" position={Position.Left} className="!w-4 !h-4 !bg-black !border-[3px] !border-white shadow-sm" />
+      <Handle type="source" position={Position.Right} className="!w-4 !h-4 !bg-black !border-[3px] !border-white shadow-sm" />
 
       {fetchError ? (
         <div className="absolute inset-0 flex items-center justify-center p-8 text-center">
@@ -217,7 +218,7 @@ function ArtistPoolNodeComponent({ data }: ArtistPoolNodeProps) {
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedArtist(artist);
+                  data.onArtistSelect?.(artist, id);
                 }}
               >
                 <img
@@ -238,15 +239,6 @@ function ArtistPoolNodeComponent({ data }: ArtistPoolNodeProps) {
           <p className="text-gray-400 text-sm font-medium">No artists found. Start by adding one!</p>
         </div>
       )}
-
-      <ArtistDetailsModal
-        open={!!selectedArtist}
-        onOpenChange={(open) => !open && setSelectedArtist(null)}
-        artist={selectedArtist ? {
-          ...selectedArtist,
-          image: selectedArtist.s3_cover_key ? `${S3_BASE_URL}/${selectedArtist.s3_cover_key}` : `https://i.pravatar.cc/150?u=${selectedArtist.id}`
-        } : null}
-      />
     </div>
   );
 }
