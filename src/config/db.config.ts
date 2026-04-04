@@ -5,11 +5,15 @@ import fs from 'fs';
 const caBundle = fs.readFileSync(new URL('./certs/global-bundle.pem', import.meta.url));
 
 const pool = new Pool({
-    host: 'music-player-db.cbs4e4gim1z4.ap-south-1.rds.amazonaws.com',
+    host: String(process.env.DB_HOST)?? (()=>{
+      throw new Error("host is not defined")
+    }),
     port: 5432,
     database: 'postgres',
     user: 'postgres',
-    password: String(process.env.DB_PASSWORD || ''),
+    password: String(process.env.DB_PASSWORD) ?? (()=>{
+      throw new Error("password is not defined")
+    }),
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

@@ -1,11 +1,11 @@
 import pool from "../config/db.config";
 
-export async function saveArtist(name: string, s3CoverKey?: string) {
+export async function saveArtist(id: string, name: string, s3CoverKey?: string) {
     const result = await pool.query(
-        `INSERT INTO artists (name, s3_cover_key) 
-         VALUES ($1, $2) 
+        `INSERT INTO artists (id, name, s3_cover_key) 
+         VALUES ($1, $2, $3) 
          RETURNING id`,
-        [name, s3CoverKey]
+        [id, name, s3CoverKey]
     );
     return result.rows[0];
 }
@@ -33,12 +33,12 @@ export async function getSongsByAlbum(albumId: string) {
     return result.rows;
 }
 
-export async function saveAlbum(title: string, artistId: string, releaseYear: number, genre?: string, s3CoverKey?: string) {
+export async function saveAlbum(id: string, title: string, artistId: string, releaseYear?: number, genre?: string, s3CoverKey?: string) {
     const result = await pool.query(
-        `INSERT INTO albums (title, artist_id, release_year, genre, s3_cover_key) 
-         VALUES ($1, $2, $3, $4, $5) 
+        `INSERT INTO albums (id, title, artist_id, release_year, genre, s3_cover_key) 
+         VALUES ($1, $2, $3, $4, $5, $6) 
          RETURNING id`,
-        [title, artistId, releaseYear, genre, s3CoverKey]
+        [id, title, artistId, releaseYear, genre, s3CoverKey]
     );
     return result.rows[0];
 }

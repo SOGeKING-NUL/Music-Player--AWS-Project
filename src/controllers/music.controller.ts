@@ -3,15 +3,15 @@ import { saveArtist, saveAlbum, getAllArtists, getAlbumsByArtist, getSongsByAlbu
 
 export async function addArtist(req: Request, res: Response) {
     try {
-        const { name, s3CoverKey } = req.body;
+        const { id, name, s3CoverKey } = req.body;
 
-        if (!name) {
+        if (!id || !name) {
             return res.status(400).json({
-                error: 'Missing required field: name'
+                error: 'Missing required fields: id, name'
             });
         }
 
-        const artist = await saveArtist(name, s3CoverKey);
+        const artist = await saveArtist(id, name, s3CoverKey);
 
         res.json({
             success: true,
@@ -26,15 +26,15 @@ export async function addArtist(req: Request, res: Response) {
 
 export async function addAlbum(req: Request, res: Response) {
     try {
-        const { title, artistId, releaseYear, genre } = req.body;
+        const { id, title, artistId, releaseYear, genre } = req.body;
 
-        if (!title || !artistId) {
+        if (!id || !title || !artistId) {
             return res.status(400).json({
-                error: 'Missing required fields: title, artistId'
+                error: 'Missing required fields: id, title, artistId'
             });
         }
 
-        const album = await saveAlbum(title, artistId, releaseYear, genre);
+        const album = await saveAlbum(id, title, artistId, releaseYear, genre);
 
         res.json({
             success: true,

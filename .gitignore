@@ -1,5 +1,2 @@
 .env
 node_modules/
-
-src/db/dropTables.ts
-src/db/listTableContents.ts
