@@ -48,33 +48,26 @@ export function AddArtistForm({ open, onOpenChange, onSuccess }: AddArtistFormPr
 
     try {
       let s3CoverKey: string | undefined;
+      const artistId = crypto.randomUUID();
 
-      // Upload image if provided
       if (image) {
-        const artistId = crypto.randomUUID();
         const fileType = image.type;
-
-        // Get presigned URL
         const { data } = await api.getArtistImagePresignedUrl(artistId, fileType);
-        
-        // Upload to S3
         await uploadToS3(data.uploadUrl, image);
-        
-        s3CoverKey = data.key;
+        s3CoverKey = data.s3Key;
       }
 
-      // Save artist to database
-      await api.addArtist({
+      const response = await api.addArtist({
+        id: artistId,
         name: name.trim(),
         s3CoverKey,
       });
 
-      // Reset form
       setName("");
       setImage(null);
       setImagePreview(null);
       onOpenChange(false);
-      onSuccess?.();
+      onSuccess?.(response.data.artistId);
     } catch (err: any) {
       console.error("Error adding artist. Full error object:", err);
       // If it's an axios error with a response, log the response data for more context

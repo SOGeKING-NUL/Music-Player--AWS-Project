@@ -16,6 +16,7 @@ import { ArtistPoolNode } from './ArtistPoolNode';
 import { AddArtistNode } from './AddArtistNode';
 import { ArtistAlbumsNode } from './ArtistAlbumsNode';
 import { AlbumSongsNode } from './AlbumSongsNode';
+import { CreateAlbumNode } from './CreateAlbumNode';
 
 const nodeTypes = {
   mainButton: MainButtonNode,
@@ -23,6 +24,7 @@ const nodeTypes = {
   addArtist: AddArtistNode,
   artistAlbums: ArtistAlbumsNode,
   albumSongs: AlbumSongsNode,
+  createAlbum: CreateAlbumNode,
 };
 
 const defaultEdgeOptions = {
@@ -79,12 +81,14 @@ function CanvasContent() {
   }, [rfInstance]);
 
   const removeNodeAndChildren = useCallback((nodeIdToRemove: string) => {
-    setNodes((nds) => {
-      let idsToRemove = [nodeIdToRemove];
-      if (nodeIdToRemove === 'artist-albums') idsToRemove.push('album-songs');
-      return nds.filter((n) => !idsToRemove.includes(n.id));
-    });
-    setEdges((eds) => eds.filter((e) => e.source !== nodeIdToRemove && e.target !== nodeIdToRemove));
+    let idsToRemove = [nodeIdToRemove];
+    if (nodeIdToRemove === 'artist-albums') {
+      idsToRemove.push('album-songs');
+      idsToRemove.push('create-album');
+    }
+    
+    setNodes((nds) => nds.filter((n) => !idsToRemove.includes(n.id)));
+    setEdges((eds) => eds.filter((e) => !idsToRemove.includes(e.source) && !idsToRemove.includes(e.target)));
   }, [setNodes, setEdges]);
 
   // Main Button -> Add Artist Form Node
@@ -146,7 +150,8 @@ function CanvasContent() {
         data: {
           artist: formattedArtist,
           onClose: () => removeNodeAndChildren('artist-albums'),
-          onAlbumSelect: (album: any) => onAlbumSelect(album, formattedArtist.id)
+          onAlbumSelect: (album: any) => onAlbumSelect(album, formattedArtist.id),
+          onNewAlbumClick: () => onNewAlbumClick(formattedArtist.id, formattedArtist.name)
         },
         draggable: true,
       }];
@@ -194,6 +199,55 @@ function CanvasContent() {
     setEdges((eds) => {
       const filtered = eds.filter(e => e.id !== 'e-albums-songs');
       return [...filtered, { id: 'e-albums-songs', source: 'artist-albums', target: 'album-songs' }];
+    });
+
+    setTimeout(() => focusNode(focusPos.x, focusPos.y), 50);
+  }, [setNodes, setEdges, removeNodeAndChildren, focusNode]);
+
+  // Artist Albums -> Create Album Node (Batch Upload)
+  const onNewAlbumClick = useCallback((artistId: string, artistName: string) => {
+    let focusPos = { x: 1450, y: -200 };
+
+    setNodes((nds) => {
+      const filtered = nds.filter(n => n.id !== 'create-album' && n.id !== 'album-songs');
+      const albumsNode = filtered.find(n => n.id === 'artist-albums');
+      
+      // Position Create Album node above the songs location
+      const pos = albumsNode ? { x: albumsNode.position.x + 500, y: albumsNode.position.y - 300 } : focusPos;
+      focusPos = pos;
+
+      return [...filtered, {
+        id: 'create-album',
+        type: 'createAlbum',
+        position: pos,
+        data: {
+          artistId,
+          artistName,
+          onClose: () => removeNodeAndChildren('create-album'),
+          onAlbumCreated: (createdAlbum: { id: string; title: string; release_year?: number }) => {
+            // Re-trigger artist selection to refresh the albums list
+            removeNodeAndChildren('create-album');
+            // Hacky way to trick the pool node to refresh, or just refresh albums manually.
+            // But since ArtistAlbumsNode fetches on mount & artist ID change, we should probably 
+            // tell ArtistAlbumsNode to refresh via a prop update.
+            setNodes(current => current.map(n => {
+              if (n.id === 'artist-albums') {
+                return { ...n, data: { ...n.data, refreshKey: Date.now() } };
+              }
+              return n;
+            }));
+
+            // Open the album tracks tab immediately for the newly created album.
+            onAlbumSelect(createdAlbum, artistId);
+          }
+        },
+        draggable: true,
+      }];
+    });
+
+    setEdges((eds) => {
+      const filtered = eds.filter(e => e.id !== 'e-albums-create' && e.id !== 'e-albums-songs');
+      return [...filtered, { id: 'e-albums-create', source: 'artist-albums', target: 'create-album' }];
     });
 
     setTimeout(() => focusNode(focusPos.x, focusPos.y), 50);

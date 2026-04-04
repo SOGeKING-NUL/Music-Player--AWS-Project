@@ -62,7 +62,14 @@ function AlbumItem({ album, artistId }: { album: Album; artistId: string }) {
     try {
       setIsUploading(true);
       // 1. Get Presigned URL
-      const { data: presignedData } = await api.getSongPresignedUrl(audioFile.name, audioFile.type);
+      const songId = crypto.randomUUID();
+      const { data: presignedData } = await api.getSongPresignedUrl({
+        artistId: artistId,
+        albumId: album.id,
+        songId,
+        trackNumber: trackNumber,
+        fileType: audioFile.type,
+      });
       
       // 2. Upload to S3
       await uploadToS3(presignedData.uploadUrl, audioFile);
@@ -206,7 +213,10 @@ export function ArtistDetailsModal({ open, onOpenChange, artist }: ArtistDetails
     if (!artist || !newAlbumTitle.trim()) return;
 
     try {
+      // Generate album ID in frontend - this will be used for both S3 and database
+      const albumId = crypto.randomUUID();
       await api.addAlbum({
+        id: albumId,
         title: newAlbumTitle,
         artistId: artist.id,
         releaseYear: newAlbumYear ? Number(newAlbumYear) : undefined

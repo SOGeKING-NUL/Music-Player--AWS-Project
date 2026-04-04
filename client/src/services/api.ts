@@ -5,12 +5,12 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000/api';
 export const api = {
   // Artists
   getArtists: () => axios.get(`${API_BASE}/music/artists`),
-  addArtist: (data: { name: string; s3CoverKey?: string }) => 
+  addArtist: (data: { id: string; name: string; s3CoverKey?: string }) => 
     axios.post(`${API_BASE}/music/artist`, data),
   
   // Albums
   getArtistAlbums: (artistId: string) => axios.get(`${API_BASE}/music/artist/${artistId}/albums`),
-  addAlbum: (data: { title: string; artistId: string; releaseYear?: number; genre?: string }) => 
+  addAlbum: (data: { id: string; title: string; artistId: string; releaseYear?: number; genre?: string }) => 
     axios.post(`${API_BASE}/music/album`, data),
 
   // Songs
@@ -22,8 +22,18 @@ export const api = {
   // Upload Presigned URLs
   getArtistImagePresignedUrl: (artistId: string, fileType: string) =>
     axios.post(`${API_BASE}/upload/artist/presigned-url`, { artistId, fileType }),
-  getSongPresignedUrl: (fileName: string, fileType: string) =>
-    axios.post(`${API_BASE}/upload/song/presigned-url`, { fileName, fileType }),
+  getSongPresignedUrl: (data: {
+    artistId: string;
+    albumId: string;
+    songId: string;
+    trackNumber: number;
+    fileType: string;
+  }) =>
+    axios.post(`${API_BASE}/upload/song/presigned-url`, data),
+  getAlbumCoverPresignedUrl: (artistId: string, albumId: string, fileType: string) =>
+    axios.post(`${API_BASE}/upload/cover/presigned-url`, { artistId, albumId, fileType }),
+  confirmAlbumCoverUpload: (artistId: string, albumId: string, s3CoverKey: string) =>
+    axios.post(`${API_BASE}/upload/cover/confirm`, { artistId, albumId, s3CoverKey }),
 };
 
 export const uploadToS3 = async (presignedUrl: string, file: File) => {

@@ -47,22 +47,18 @@ function AddArtistNodeComponent({ id, data }: AddArtistNodeProps) {
     try {
       setIsSubmitting(true);
       let s3CoverKey = undefined;
+      
+      // Generate artist UUID once - this will be used for both S3 and database
+      const artistId = crypto.randomUUID();
 
       if (image) {
-        // We need an artistId first to associate the image.
-        // Actually the backend `addArtist` currently accepts `name` and `s3CoverKey`.
-        // So we must upload the image first, but `getArtistImagePresignedUrl` requires an `artistId`.
-        // Wait, earlier we were using a temporary ID or uuid...
-        // Let's use name as a secure seed or just call the endpoint.
-        // The original `AddArtistForm` used `api.getArtistImagePresignedUrl('temp', image.type)`.
-        
-        const { data: presignedData } = await api.getArtistImagePresignedUrl('temp_' + Date.now(), image.type);
+        const { data: presignedData } = await api.getArtistImagePresignedUrl(artistId, image.type);
         const uploadUrl = presignedData.uploadUrl;
         s3CoverKey = presignedData.key || presignedData.s3Key;
         await uploadToS3(uploadUrl, image);
       }
 
-      await api.addArtist({ name, s3CoverKey });
+      await api.addArtist({ id: artistId, name, s3CoverKey });
       
       data.onSuccess();
       data.onClose(id); // Close the node automatically on success

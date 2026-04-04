@@ -258,7 +258,17 @@ import 'geist/font/sans'
 ## Do's and Don'ts
 
 ### ✅ Do
-- Use pure black and white as primary colors
+- Use pure black and white
+### 3. Glassmorphism & Blurs
+*   Use `backdrop-blur-md` or `backdrop-blur-sm` for overlay elements.
+*   Backgrounds should generally be semi-transparent when floating over the canvas (e.g. `bg-black/40`).
+
+### 4. Node Headers & Structure
+*   **No Navbars**: Nodes should not have distinct, separated navbars or divided headers (e.g., no `border-b` separating the header from the content). 
+*   The content should flow seamlessly from the top of the node downwards to maintain a clean, flat aesthetic.
+
+### 5. Button Shapes
+*   **Pill-Shaped Buttons**: All action buttons must be fully rounded (`rounded-full` in Tailwind) to maintain uniformity across the app, replacing standard square or `rounded-md` buttons.
 - Use gradient only for primary buttons and accents
 - Keep generous white space
 - Use Inter font consistently
