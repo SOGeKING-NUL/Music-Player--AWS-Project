@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { saveArtist, saveAlbum, getAllArtists, getAlbumsByArtist, getSongsByAlbum } from "../services/db.service";
+import { saveArtist, saveAlbum, getAllArtists, getAlbumsByArtist, getSongsByAlbum, getRemainingAlbumQueue, getRandomQueue, searchMusic } from "../services/db.service";
+import { getPresignedUrl, getStreamPresignedUrl } from "../services/s3.service";
 
 export async function addArtist(req: Request, res: Response) {
     try {
@@ -83,5 +84,55 @@ export async function getAlbumSongs(req: Request, res: Response) {
     } catch (err) {
         console.error("Error fetching songs:", err);
         res.status(500).json({ error: 'Failed to fetch songs' });
+    }
+}
+
+async function attachPresignedCovers(tracks: any[]) {
+    return Promise.all(tracks.map(async (track: any) => {
+        if (track.album_cover_key) {
+            try {
+                const { streamUrl } = await getStreamPresignedUrl(track.album_cover_key, 3600);
+                track.albumCoverUrl = streamUrl;
+            } catch (err) {
+                console.error("Presign error", err);
+            }
+        }
+        return track;
+    }));
+}
+
+export async function getQueue(req: Request, res: Response) {
+    try {
+        const { albumId, trackNumber, limit } = req.query;
+        let tracks = [];
+
+        if (albumId && trackNumber) {
+            tracks = await getRemainingAlbumQueue(String(albumId), Number(trackNumber));
+        } else {
+            tracks = await getRandomQueue(limit ? Number(limit) : 20);
+        }
+
+        const queueWithCovers = await attachPresignedCovers(tracks);
+        res.json({ queue: queueWithCovers });
+    } catch (err) {
+        console.error("Error fetching queue:", err);
+        res.status(500).json({ error: 'Failed to fetch queue' });
+    }
+}
+
+export async function search(req: Request, res: Response) {
+    try {
+        const { q, limit } = req.query;
+        if (!q) {
+             return res.status(400).json({ error: 'Missing query parameter q' });
+        }
+
+        const tracks = await searchMusic(String(q), limit ? Number(limit) : 20);
+        const resultsWithCovers = await attachPresignedCovers(tracks);
+
+        res.json({ results: resultsWithCovers });
+    } catch (err) {
+        console.error("Error searching:", err);
+        res.status(500).json({ error: 'Failed to search' });
     }
 }

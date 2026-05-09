@@ -1,5 +1,5 @@
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import s3Client from "../config/s3.config";
 
 export async function getPresignedUrl(
@@ -23,6 +23,30 @@ export async function getPresignedUrl(
 
     return {
         uploadUrl,
+        key: key,
+        expiresIn
+    }
+}
+
+export async function getStreamPresignedUrl(
+    key: string, 
+    expiresIn: number = 3600  // 1 hour
+){  
+    const bucket = process.env.AWS_BUCKET_NAME;
+
+    if (!bucket){
+        throw new Error ('No AWS_BUCKET_NAME found');
+    }
+    
+    const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+    });
+
+    const streamUrl = await getSignedUrl(s3Client, command, { expiresIn });
+
+    return {
+        streamUrl,
         key: key,
         expiresIn
     }

@@ -14,11 +14,19 @@ function MainButtonNodeComponent() {
         Add Artist
       </HoverBorderGradient>
 
-      {/* Source Handle (connects to the pool) */}
+      {/* Source Handle → Artist Pool (right side) */}
       <Handle 
         type="source" 
+        id="to-pool"
         position={Position.Right} 
-        className="!w-4 !h-4 !bg-black !border-[3px] !border-white shadow-sm"
+        className="!w-3 !h-3 !bg-gray-400 !border-[2px] !border-white shadow-sm"
+      />
+      {/* Source Handle → Add Artist form (top side) */}
+      <Handle 
+        type="source" 
+        id="to-add-artist"
+        position={Position.Top} 
+        className="!w-3 !h-3 !bg-gray-400 !border-[2px] !border-white shadow-sm"
       />
     </div>
   );

@@ -28,11 +28,11 @@ const nodeTypes = {
 };
 
 const defaultEdgeOptions = {
-  type: 'bezier',
-  animated: true,
+  type: 'default',
   style: {
-    stroke: '#000000',
-    strokeWidth: 4, 
+    stroke: '#9ca3af',
+    strokeWidth: 2,
+    strokeDasharray: '6, 4',
   },
 };
 
@@ -59,9 +59,9 @@ const INITIAL_EDGES: Edge[] = [
   {
     id: 'e-main-pool',
     source: 'main-btn',
+    sourceHandle: 'to-pool',
     target: 'artist-pool',
     selectable: false,
-    animated: true,
   },
 ];
 
@@ -120,7 +120,7 @@ function CanvasContent() {
 
     setEdges((eds) => {
       if (eds.some(e => e.id === 'e-main-add')) return eds;
-      return [...eds, { id: 'e-main-add', source: 'main-btn', target: 'add-artist' }];
+      return [...eds, { id: 'e-main-add', source: 'main-btn', sourceHandle: 'to-add-artist', target: 'add-artist' }];
     });
 
     // Animate camera to the new node
@@ -150,7 +150,7 @@ function CanvasContent() {
         data: {
           artist: formattedArtist,
           onClose: () => removeNodeAndChildren('artist-albums'),
-          onAlbumSelect: (album: any) => onAlbumSelect(album, formattedArtist.id),
+          onAlbumSelect: (album: any) => onAlbumSelect(album, formattedArtist.id, formattedArtist.name),
           onNewAlbumClick: () => onNewAlbumClick(formattedArtist.id, formattedArtist.name)
         },
         draggable: true,
@@ -166,7 +166,7 @@ function CanvasContent() {
   }, [setNodes, setEdges, removeNodeAndChildren, focusNode]);
 
   // Album -> Album Songs Node
-  const onAlbumSelect = useCallback((album: any, artistId: string) => {
+  const onAlbumSelect = useCallback((album: any, artistId: string, artistName: string) => {
     let focusPos = { x: 1450, y: 200 };
 
     setNodes((nds) => nds.map((n) => {
@@ -190,6 +190,7 @@ function CanvasContent() {
         data: {
           album,
           artistId,
+          artistName,
           onClose: () => removeNodeAndChildren('album-songs')
         },
         draggable: true,
@@ -238,7 +239,7 @@ function CanvasContent() {
             }));
 
             // Open the album tracks tab immediately for the newly created album.
-            onAlbumSelect(createdAlbum, artistId);
+            onAlbumSelect(createdAlbum, artistId, artistName);
           }
         },
         draggable: true,

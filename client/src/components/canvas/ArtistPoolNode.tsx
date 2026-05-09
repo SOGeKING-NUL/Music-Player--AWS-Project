@@ -171,7 +171,9 @@ function ArtistPoolNodeComponent({ id, data }: ArtistPoolNodeProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center bg-white border border-gray-200 rounded-3xl shadow-lg" style={{ width: `${POOL_SIZE}px`, height: `${POOL_SIZE}px` }}>
+      <div className="flex items-center justify-center bg-white border border-gray-200 rounded-3xl shadow-lg relative" style={{ width: `${POOL_SIZE}px`, height: `${POOL_SIZE}px` }}>
+        <Handle type="target" position={Position.Left} className="!w-4 !h-4 !bg-black !border-[3px] !border-white shadow-sm" />
+        <Handle type="source" position={Position.Right} className="!w-4 !h-4 !bg-black !border-[3px] !border-white shadow-sm" />
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
       </div>
     );

@@ -8,7 +8,7 @@ import { Upload, X } from "lucide-react";
 interface AddArtistFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (id?: string) => void;
 }
 
 export function AddArtistForm({ open, onOpenChange, onSuccess }: AddArtistFormProps) {

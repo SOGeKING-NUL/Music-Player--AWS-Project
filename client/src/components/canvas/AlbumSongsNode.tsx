@@ -1,18 +1,21 @@
 import { useState, useEffect, memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { api } from "@/services/api";
-import { X, Music, Loader2 } from "lucide-react";
+import { X, Loader2, Play } from "lucide-react";
+import { useMusicPlayer } from "@/contexts/MusicPlayerContext";
 
 interface Song {
   id: string;
   title: string;
   track_number: number;
   duration_seconds?: number;
+  s3_audio_key: string;
 }
 
 interface Album {
   id: string;
   title: string;
+  s3_cover_key?: string;
 }
 
 interface AlbumSongsNodeProps {
@@ -20,21 +23,18 @@ interface AlbumSongsNodeProps {
   data: {
     album: Album;
     artistId: string;
+    artistName?: string;
     onClose: (id: string) => void;
   };
 }
 
-function formatDuration(seconds?: number) {
-  if (!seconds) return '--:--';
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+// formatting duration handled on global components instead
 
 function AlbumSongsNodeComponent({ id, data }: AlbumSongsNodeProps) {
   const { album } = data;
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { playSong, currentTrack, isPlaying } = useMusicPlayer();
   const fetchSongs = async () => {
     try {
       setIsLoading(true);
@@ -84,15 +84,34 @@ function AlbumSongsNodeComponent({ id, data }: AlbumSongsNodeProps) {
           ) : songs.length === 0 ? (
             <p className="text-xs text-gray-400 text-center py-8">No tracks in this album yet.</p>
           ) : (
-            songs.map((song) => (
-              <div key={song.id || song.track_number} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-transparent hover:border-gray-100 group">
-                <span className="text-sm font-bold text-gray-300 w-5 text-right font-mono group-hover:text-black transition-colors">{song.track_number}</span>
-                <span className="flex-1 text-sm font-semibold text-gray-800 group-hover:text-black transition-colors">{song.title}</span>
-                <span className="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                  <Music className="w-3 h-3"/> {formatDuration(song.duration_seconds)}
-                </span>
-              </div>
-            ))
+            songs.map((song) => {
+              const isActive = currentTrack?.songId === song.id;
+              return (
+                <div 
+                  key={song.id || song.track_number} 
+                  onClick={() => playSong({
+                    songId: song.id,
+                    title: song.title,
+                    artistName: data.artistName || "Unknown Artist", 
+                    albumCoverUrl: album.s3_cover_key ? `https://music-player-2026.s3.ap-south-1.amazonaws.com/${album.s3_cover_key}` : "",
+                    s3AudioKey: song.s3_audio_key,
+                    albumId: album.id,
+                    trackNumber: song.track_number
+                  })}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 border cursor-pointer group ${isActive ? 'bg-black text-white shadow-md border-black' : 'border-transparent hover:border-gray-200 hover:bg-gray-50'}`}
+                >
+                  <span className={`w-6 text-center font-mono text-sm transition-colors ${isActive ? 'text-white' : 'text-gray-300 group-hover:text-black font-bold'}`}>
+                    {isActive && isPlaying ? <div className="w-full flex justify-center"><Loader2 className="w-4 h-4 animate-spin" /></div> : song.track_number}
+                  </span>
+                  <span className={`flex-1 text-sm font-semibold transition-colors ${isActive ? 'text-white' : 'text-gray-800 group-hover:text-black'}`}>
+                    {song.title}
+                  </span>
+                  <button className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white/20 text-white' : 'opacity-0 group-hover:opacity-100 bg-black text-white scale-90 group-hover:scale-100 shadow-sm'}`}>
+                    <Play className="w-3 h-3 fill-current ml-0.5" />
+                  </button>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

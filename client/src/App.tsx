@@ -1,5 +1,8 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import { InfiniteCanvas } from "./components/canvas/InfiniteCanvas";
+import { MusicPlayerProvider } from "./contexts/MusicPlayerContext";
+import { GlobalMusicDock } from "./components/GlobalMusicDock";
+import { QueueSidebar } from "./components/ui/QueueSidebar";
 
 function App() {
   return (
@@ -12,9 +15,13 @@ function App() {
       </div>
 
       {/* Infinite Canvas (fills entire viewport) */}
-      <ReactFlowProvider>
-        <InfiniteCanvas />
-      </ReactFlowProvider>
+      <MusicPlayerProvider>
+        <ReactFlowProvider>
+          <InfiniteCanvas />
+        </ReactFlowProvider>
+        <GlobalMusicDock />
+        <QueueSidebar />
+      </MusicPlayerProvider>
     </div>
   );
 }

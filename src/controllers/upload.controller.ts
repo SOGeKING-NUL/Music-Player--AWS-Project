@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { generateAlbumKey, generateSongKey, generateArtistImageKey } from "../utils/s3KeyGenerator";
-import { getPresignedUrl } from "../services/s3.service";
+import { getPresignedUrl, getStreamPresignedUrl } from "../services/s3.service";
 import { saveSong, updateAlbumCover } from "../services/db.service";
 
 
@@ -39,6 +39,27 @@ export async function getSongUrl(req: Request, res: Response){
     }catch(err){
         console.error("Error while generating song URL:", err);
         res.status(500).json({error: "Failed to generate upload URL"});
+    }
+}
+
+export async function getStreamUrl(req: Request, res: Response){
+    try{
+        const { s3AudioKey } = req.body;
+
+        if(!s3AudioKey){
+            return res.status(400).json({
+                error: 'Missing required field: s3AudioKey'
+            });
+        }
+
+        const url = await getStreamPresignedUrl(s3AudioKey);
+
+        res.json({
+            ...url
+        });
+    }catch(err){
+        console.error("Error while generating stream URL:", err);
+        res.status(500).json({error: "Failed to generate stream URL"});
     }
 }
 

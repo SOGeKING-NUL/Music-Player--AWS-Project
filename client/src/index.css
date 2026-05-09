@@ -24,10 +24,7 @@ body {
   cursor: grabbing;
 }
 
-.react-flow__edge-path {
-  stroke: #E5E7EB !important;
-  stroke-width: 2 !important;
-}
+
 
 .react-flow__controls {
   border-radius: 12px !important;

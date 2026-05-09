@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { getCoverUrl, getSongUrl, getArtistImageUrl, confirmSongUpload, confirmCoverUpload } from "../controllers/upload.controller";
+import { getCoverUrl, getSongUrl, getArtistImageUrl, confirmSongUpload, confirmCoverUpload, getStreamUrl } from "../controllers/upload.controller";
 
 const router= Router();
 
+router.post('/stream/url', getStreamUrl);
 router.post('/song/presigned-url', getSongUrl);
 router.post('/cover/presigned-url', getCoverUrl);
 router.post('/artist/presigned-url', getArtistImageUrl);
