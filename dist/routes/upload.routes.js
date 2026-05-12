@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const upload_controller_1 = require("../controllers/upload.controller");
+const router = (0, express_1.Router)();
+router.post('/stream/url', upload_controller_1.getStreamUrl);
+router.post('/song/presigned-url', upload_controller_1.getSongUrl);
+router.post('/cover/presigned-url', upload_controller_1.getCoverUrl);
+router.post('/artist/presigned-url', upload_controller_1.getArtistImageUrl);
+router.post('/song/confirm', upload_controller_1.confirmSongUpload);
+router.post('/cover/confirm', upload_controller_1.confirmCoverUpload);
+exports.default = router;

@@ -1,12 +1,13 @@
-import {Pool} from "pg";
+import { Pool } from "pg";
 import 'dotenv/config';
 import fs from 'fs';
+import path from 'path';
 
-const caBundle = fs.readFileSync(new URL('./certs/global-bundle.pem', import.meta.url));
+const caBundle = fs.readFileSync(path.join(process.cwd(), 'src', 'config', 'certs', 'global-bundle.pem'));  //doing so ensures that the path is resolved correctly when it is run from the dist folder and it finds the certificate since it does not get reproduced in the dist folder
 
 const pool = new Pool({
-    host: String(process.env.DB_HOST)?? (()=>{
-      throw new Error("host is not defined")
+    host: String(process.env.DB_HOST) ?? (() => {
+        throw new Error("host is not defined")
     }),
     port: 5432,
     database: 'postgres',

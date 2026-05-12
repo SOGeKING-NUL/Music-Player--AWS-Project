@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const session_controller_1 = require("../controllers/session.controller");
+const router = (0, express_1.Router)();
+router.post("/init", session_controller_1.initSession);
+router.post("/history", session_controller_1.logPlay);
+router.get("/last-played", session_controller_1.getLastPlayed);
+router.get("/previous", session_controller_1.getPrevious);
+exports.default = router;

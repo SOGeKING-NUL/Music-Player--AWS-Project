@@ -7,7 +7,8 @@ import musicRoutes from './routes/music.routes';
 import sessionRoutes from './routes/session.routes';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 8000;
+const HOST = '0.0.0.0'; // CRITICAL: Listen on all interfaces for Docker/ECS
 
 // Allow cookies to be sent from the frontend dev server
 app.use(cors({
@@ -21,6 +22,25 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/music', musicRoutes);
 app.use('/api/session', sessionRoutes);
 
-app.listen(PORT, () => {
-    console.log("Server running on", PORT);
-});
+// Health check endpoint for ALB/ECS
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.status(200).json({ 
+        message: 'Music Player API',
+        version: '1.0.0'
+    });
+});
+
+app.listen(Number(PORT), HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT}`);
+    console.log(`Health check: http://${HOST}:${PORT}/health`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
