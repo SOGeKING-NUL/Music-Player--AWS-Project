@@ -4,6 +4,12 @@ A scalable, production-ready music streaming application built with modern web t
 
 **Live Demo**: [Backend API](http://music-player-load-balancer-19704141.ap-south-1.elb.amazonaws.com)
 
+## 🎥 Full Demo Video
+
+https://github.com/user-attachments/assets/demo.mkv
+
+*Complete walkthrough of the application features and AWS infrastructure*
+
 ---
 
 ## 🏗️ System Architecture
@@ -59,58 +65,8 @@ A scalable, production-ready music streaming application built with modern web t
 
 ## 🚀 Core Features
 
-### 1. Artist Management
-![Artist Management](./docs/artist-management.png)
-
-- **Add Artists**: Upload artist profiles with cover images
-- **Artist Profiles**: View complete discography with albums and tracks
-- **Direct S3 Upload**: Presigned URLs for secure, direct-to-S3 image uploads
-- **UUID-based Storage**: Consistent identification across database and object storage
-
-**Technical Highlights**:
-- Frontend generates UUID before upload
-- Presigned URL generation with 1-hour expiry
-- S3 path structure: `media/artists/{artistId}/cover.jpg`
-
----
-
-### 2. Album & Track Upload
-![Album Upload](./docs/album-upload.png)
-
-- **Multi-Track Upload**: Drag-and-drop interface for batch song uploads
-- **Track Reordering**: Sortable track list with visual feedback
-- **Metadata Management**: Album title, year, genre, and cover art
-- **Progress Tracking**: Real-time upload progress for each track
-- **Auto-detection**: Automatic audio duration extraction
-
-**Technical Highlights**:
-- Sequential S3 uploads with retry logic
-- Atomic database transactions for data consistency
-- S3 path structure: `media/songs/{artistId}/{albumId}/{songId}.mp3`
-- Track numbering with unique constraints
-
----
-
-### 3. Audio Streaming (Progressive Download)
-![Audio Player](./docs/audio-player.png)
-
-- **Progressive Streaming**: Start playback before full download
-- **Seek Support**: Jump to any position using HTTP range requests
-- **Global Player**: Persistent audio player across navigation
-- **Queue Management**: Playlist and queue functionality
-- **Playback Controls**: Play, pause, seek, volume, next/previous
-
-**Technical Highlights**:
-- HTML5 Audio API with native browser buffering
-- S3 presigned URLs for secure streaming (1-hour expiry)
-- HTTP 206 Partial Content responses
-- Byte-range requests for efficient seeking
-- Only pay for data actually downloaded
-
----
-
-### 4. Infinite Canvas UI
-![Infinite Canvas](./docs/infinite-canvas.png)
+### 1. Infinite Canvas UI
+![Infinite Canvas](./assests/infinite_canvas.gif)
 
 - **React Flow Integration**: Smooth, interactive node-based interface
 - **Immutable Nodes**: Non-draggable, non-editable for consistent UX
@@ -123,6 +79,117 @@ A scalable, production-ready music streaming application built with modern web t
 - Custom node components with TypeScript
 - shadcn/ui components for consistent design
 - Tailwind CSS v4 for styling
+
+---
+
+### 2. Artist Management
+![Add Artist](./assests/add_artist.gif)
+
+- **Add Artists**: Upload artist profiles with cover images
+- **Direct S3 Upload**: Presigned URLs for secure, direct-to-S3 image uploads
+- **UUID-based Storage**: Consistent identification across database and object storage
+- **Real-time Updates**: Canvas updates immediately after artist creation
+
+**Technical Highlights**:
+- Frontend generates UUID before upload
+- Presigned URL generation with 15-minute expiry
+- S3 path structure: `media/artists/{artistId}/cover.jpg`
+- Atomic database transactions
+
+---
+
+### 3. Artist Discography View
+![Artist Discography](./assests/artist_discography.gif)
+
+- **Complete Discography**: View all albums and tracks for an artist
+- **Album Details**: Release year, genre, track count
+- **Track Listings**: Song titles, track numbers, and durations
+- **Add Albums**: Quick access to album creation from artist view
+
+**Technical Highlights**:
+- Efficient JOIN queries for nested data
+- Formatted duration display (MM:SS)
+- Modal-based navigation
+- Lazy loading for large discographies
+
+---
+
+### 4. Album & Track Upload
+![Album Upload](./assests/add_album.gif)
+
+- **3-Step Wizard**: Album Info → Add Tracks → Review
+- **Multi-Track Upload**: Batch upload multiple songs
+- **Metadata Management**: Album title, year, genre, and cover art
+- **Auto-detection**: Automatic audio duration extraction using HTML5 Audio API
+- **Progress Tracking**: Visual feedback during uploads
+
+**Technical Highlights**:
+- Sequential S3 uploads with error handling
+- Atomic database transactions for data consistency
+- S3 path structure: `media/songs/{artistId}/{albumId}/{songId}.mp3`
+- Track numbering with unique constraints
+- File validation (audio formats, size limits)
+
+---
+
+## ☁️ AWS Infrastructure
+
+### Container Registry & Docker
+![ECR Docker](./assests/ecr_dockerFile.jpg)
+
+**AWS ECR (Elastic Container Registry)**:
+- Stores Docker images for backend application
+- Integrated with ECS for seamless deployments
+- Image scanning for vulnerabilities
+- Lifecycle policies for image management
+
+---
+
+### ECS Fargate Service
+![ECS Service](./assests/ecs_service_running.jpg)
+
+**AWS ECS (Elastic Container Service)**:
+- Serverless container orchestration with Fargate
+- Auto-scaling based on CPU/memory metrics
+- Rolling updates for zero-downtime deployments
+- Health checks at task and service level
+- **Configuration**: 0.5 vCPU, 1 GB memory per task
+
+---
+
+### RDS PostgreSQL Database
+![RDS Database](./assests/rds_database.jpg)
+
+**AWS RDS (Relational Database Service)**:
+- Managed PostgreSQL database (db.t3.micro)
+- Automated backups and point-in-time recovery
+- Multi-AZ deployment for high availability
+- SSL/TLS encryption in transit
+- Connection pooling for efficient resource usage
+
+---
+
+### S3 Storage Bucket
+![S3 Bucket](./assests/s3_bucket.jpg)
+
+**AWS S3 (Simple Storage Service)**:
+- Object storage for audio files and images
+- Organized folder structure by artist/album
+- Presigned URLs for secure, time-limited access
+- Versioning enabled for data protection
+- Lifecycle policies for cost optimization
+
+---
+
+### VPC & Security Groups
+![VPC Security](./assests/vpc_security_group.jpg)
+
+**Network Security**:
+- VPC with public and private subnets
+- Security groups for network segmentation
+- ALB in public subnet, ECS/RDS in private subnets
+- Inbound rules: ALB (80), ECS (8000), RDS (5432)
+- Outbound rules: Allow all for ECS (S3 access)
 
 ---
 
@@ -389,6 +456,38 @@ POST /api/stream/playlist            # Get streaming URLs for multiple songs
 
 ```
 GET  /health                         # Container health status
+```
+
+---
+
+## ⚙️ Environment Variables
+
+### Backend (.env)
+
+```bash
+# AWS Configuration
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY=your_access_key_here
+AWS_SECRET_KEY=your_secret_key_here
+AWS_BUCKET_NAME=your-bucket-name
+
+# Database Configuration
+DB_HOST=your-rds-endpoint.rds.amazonaws.com
+DB_PASSWORD=your_db_password
+
+# Server Configuration
+PORT=8000
+CLIENT_ORIGIN=http://localhost:5173
+```
+
+### Frontend (client/.env.local)
+
+```bash
+# API Configuration
+VITE_API_BASE=http://your-alb-dns-name.elb.amazonaws.com/api
+
+# S3 Configuration
+VITE_S3_BASE_URL=https://your-bucket-name.s3.ap-south-1.amazonaws.com
 ```
 
 ---
